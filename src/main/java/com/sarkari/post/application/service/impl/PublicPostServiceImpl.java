@@ -52,4 +52,28 @@ public class PublicPostServiceImpl implements PublicPostService {
 
         return publicPostMapper.toPublicJobsPage(publishedPage);
     }
+
+    @Override
+    @Cacheable(value = "publicJobsPages", key = "T(String).format('%s|%s|%s|%s|%s', #postStatus, #page, #size, #sortBy, #sortDir)")
+    public PagedResponse<Map<String, Object>> getPublicPostsByStatus(String postStatus, int page, int size, String sortBy, String sortDir) {
+        Sort sort = Sort.by("desc".equalsIgnoreCase(sortDir) ? Sort.Order.desc(sortBy) : Sort.Order.asc(sortBy));
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<PostResponse> postPage = postRepository
+                .findByPostStatus(PostStatus.fromValue(postStatus), pageable)
+                .map(postMapper::toResponse);
+
+        List<PostResponse> content = postPage.getContent();
+        PagedResponse<PostResponse> publishedPage = PagedResponse.<PostResponse>builder()
+                .content(content)
+                .page(postPage.getNumber())
+                .size(postPage.getSize())
+                .totalElements(postPage.getTotalElements())
+                .totalPages(postPage.getTotalPages())
+                .sort(sortBy + "," + sortDir)
+                .first(postPage.isFirst())
+                .last(postPage.isLast())
+                .build();
+
+        return publicPostMapper.toPublicJobsPage(publishedPage);
+    }
 }

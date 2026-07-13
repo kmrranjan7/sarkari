@@ -6,4 +6,6 @@ import java.util.Map;
 public interface PublicPostService {
 
     PagedResponse<Map<String, Object>> getPublicJobs(String search, String postType, String postStatus, int page, int size, String sortBy, String sortDir);
+
+    PagedResponse<Map<String, Object>> getPublicPostsByStatus(String postStatus, int page, int size, String sortBy, String sortDir);
 }

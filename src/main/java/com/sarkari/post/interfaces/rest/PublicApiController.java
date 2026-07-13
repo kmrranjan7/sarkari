@@ -42,7 +42,25 @@ public class PublicApiController {
 
             return ResponseEntity.ok(ApiResponse.<PagedResponse<Map<String, Object>>>builder()
                 .success(true)
-                .message("Jobs fetched successfully")
+                .message(postType + " fetched successfully")
+                .data(payload)
+                .build());
+    }
+
+    @GetMapping("/latest-update")
+    @Operation(summary = "latest-update", description = "Fetch paginated latest-update by status in public API response format")
+    public ResponseEntity<ApiResponse<PagedResponse<Map<String, Object>>>> getPublicPostsByStatus(
+            @RequestParam(required = false) String postStatus,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") @Parameter(description = "Sort direction: asc or desc") String sortDir
+    ) {
+        PagedResponse<Map<String, Object>> payload = publicPostService.getPublicPostsByStatus(postStatus, page, size, sortBy, sortDir);
+
+        return ResponseEntity.ok(ApiResponse.<PagedResponse<Map<String, Object>>>builder()
+                .success(true)
+                .message("Posts fetched successfully")
                 .data(payload)
                 .build());
     }
