@@ -33,6 +33,7 @@ public class PostServiceImpl implements PostService {
 
     private final PostRepository repository;
     private final PostMapper mapper;
+    private final PostImageCleanupService postImageCleanupService;
 
     @Override
     @CacheEvict(value = {"postByPostId", "postPages", "publicJobsPages"}, allEntries = true)
@@ -42,6 +43,10 @@ public class PostServiceImpl implements PostService {
 
         if (repository.existsByPostSlug(request.getPostSlug().trim())) {
             throw new BusinessException("postSlug already exists");
+        }
+
+        if (repository.existsByPostTitleIgnoreCase(request.getPostTitle().trim())) {
+            throw new BusinessException("postTitle already exists");
         }
 
         String postId = buildPostId();
@@ -112,6 +117,12 @@ public class PostServiceImpl implements PostService {
                     throw new BusinessException("postSlug already exists");
                 });
 
+        repository.findByPostTitleIgnoreCase(request.getPostTitle().trim())
+                .filter(found -> !found.getId().equals(existing.getId()))
+                .ifPresent(found -> {
+                    throw new BusinessException("postTitle already exists");
+                });
+
         mapper.updateEntity(existing, request);
         Post saved = repository.save(existing);
         log.info("Updated post postId={} type={} status={}", saved.getPostId(), saved.getPostType(), saved.getPostStatus());
@@ -123,6 +134,8 @@ public class PostServiceImpl implements PostService {
     public void delete(String postId) {
         Post existing = repository.findByPostId(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found for id: " + postId));
+
+        postImageCleanupService.deleteImagesFromContentHtml(existing.getContentHtml());
         repository.delete(existing);
         log.info("Deleted post postId={}", postId);
     }

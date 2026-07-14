@@ -33,6 +33,7 @@ public class PublicPostMapper {
         item.put("createdAt", post.getCreatedAt());
         item.put("department", post.getDepartment());
         item.put("organization", post.getOrganization());
+        item.put("qualification", post.getQualification());
         item.put("postSlug", post.getPostSlug());
         item.put("postStatus", post.getPostStatus());
         item.put("postTitle", post.getPostTitle());

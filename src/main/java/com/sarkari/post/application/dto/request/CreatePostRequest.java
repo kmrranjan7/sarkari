@@ -37,6 +37,9 @@ public class CreatePostRequest {
     @Size(max = 140)
     private String organization;
 
+    @Size(max = 120)
+    private String qualification;
+
     @PositiveOrZero(message = "vacancies must be 0 or greater")
     private Integer vacancies;
 

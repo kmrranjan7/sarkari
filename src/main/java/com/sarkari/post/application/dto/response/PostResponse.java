@@ -20,6 +20,7 @@ public class PostResponse {
     private String applicationId;
     private String department;
     private String organization;
+    private String qualification;
     private Integer vacancies;
     private LocalDate startDate;
     private LocalDate endDate;

@@ -76,4 +76,14 @@ public class PublicPostServiceImpl implements PublicPostService {
 
         return publicPostMapper.toPublicJobsPage(publishedPage);
     }
+
+    @Override
+    @Cacheable(value = "publicJobsPages", key = "T(String).format('%s|%s', #slug, #postStatus)")
+    public List<PostResponse> getPublicPostsBySlugAndStatus(String slug, String postStatus) {
+        return postRepository
+                .findByPostSlugIgnoreCaseAndPostStatus(slug, PostStatus.fromValue(postStatus))
+                .stream()
+                .map(postMapper::toResponse)
+                .toList();
+    }
 }

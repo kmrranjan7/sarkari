@@ -2,12 +2,16 @@ package com.sarkari.post.interfaces.rest;
 
 import com.sarkari.common.response.ApiResponse;
 import com.sarkari.post.application.dto.response.PagedResponse;
+import com.sarkari.post.application.dto.response.PostResponse;
 import com.sarkari.post.application.service.PublicPostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import org.springframework.web.bind.annotation.PathVariable;
+
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -64,4 +68,21 @@ public class PublicApiController {
                 .data(payload)
                 .build());
     }
+
+    @GetMapping("/{slug}")
+    @Operation(summary = "Posts by slug and status", description = "Fetch all posts by slug and postStatus in public API response format")
+        public ResponseEntity<ApiResponse<List<PostResponse>>> getPublicPostsBySlugAndStatus(
+            @PathVariable("slug") String slug
+    ) {
+                List<PostResponse> payload = publicPostService.getPublicPostsBySlugAndStatus(slug, "Published");
+
+                return ResponseEntity.ok(ApiResponse.<List<PostResponse>>builder()
+                .success(true)
+                .message("Posts fetched successfully")
+                .data(payload)
+                .build());
+    }
+    
+
+
 }

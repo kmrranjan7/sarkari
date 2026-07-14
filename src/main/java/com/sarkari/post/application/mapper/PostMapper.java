@@ -18,6 +18,7 @@ public class PostMapper {
                 .applicationId(trim(req.getApplicationId()))
                 .department(trim(req.getDepartment()))
                 .organization(trim(req.getOrganization()))
+                .qualification(trim(req.getQualification()))
                 .vacancies(req.getVacancies())
                 .startDate(req.getStartDate())
                 .endDate(req.getEndDate())
@@ -39,6 +40,7 @@ public class PostMapper {
         post.setApplicationId(trim(req.getApplicationId()));
         post.setDepartment(trim(req.getDepartment()));
         post.setOrganization(trim(req.getOrganization()));
+        post.setQualification(trim(req.getQualification()));
         post.setVacancies(req.getVacancies());
         post.setStartDate(req.getStartDate());
         post.setEndDate(req.getEndDate());
@@ -61,6 +63,7 @@ public class PostMapper {
                 .applicationId(post.getApplicationId())
                 .department(post.getDepartment())
                 .organization(post.getOrganization())
+                .qualification(post.getQualification())
                 .vacancies(post.getVacancies())
                 .startDate(post.getStartDate())
                 .endDate(post.getEndDate())

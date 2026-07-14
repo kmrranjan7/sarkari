@@ -64,6 +64,9 @@ public class Post {
     @Column(length = 140)
     private String organization;
 
+    @Column(length = 120)
+    private String qualification;
+
     @Column
     private Integer vacancies;
 
