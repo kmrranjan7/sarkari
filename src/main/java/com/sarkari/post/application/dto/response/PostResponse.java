@@ -17,6 +17,7 @@ public class PostResponse {
     private String postTitle;
     private String postSlug;
     private String contentHtml;
+    private String imageUrls;
     private String applicationId;
     private String department;
     private String organization;

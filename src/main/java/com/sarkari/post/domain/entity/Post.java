@@ -67,6 +67,9 @@ public class Post {
     @Column(length = 120)
     private String qualification;
 
+    @Column(name = "image_urls", length = 5000)
+    private String imageUrls;
+
     @Column
     private Integer vacancies;
 

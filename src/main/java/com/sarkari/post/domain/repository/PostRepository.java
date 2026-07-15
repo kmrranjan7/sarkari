@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
 
@@ -28,6 +29,11 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Page<Post> findByPostTypeAndPostStatus(PostType postType, PostStatus postStatus, Pageable pageable);
 
     List<Post> findByPostSlugIgnoreCaseAndPostStatus(String postSlug, PostStatus postStatus);
+
+    List<Post> findByImageUrlsContaining(String imageToken);
+
+    @Query("select p.imageUrls from Post p where p.imageUrls is not null and p.imageUrls <> ''")
+    List<String> findAllImageUrlsValues();
 
     Page<Post> findByPostTitleContainingIgnoreCaseOrDepartmentContainingIgnoreCaseOrOrganizationContainingIgnoreCase(
             String title,
