@@ -3,6 +3,7 @@ package com.sarkari.post.domain.repository;
 import com.sarkari.post.domain.entity.Post;
 import com.sarkari.post.domain.enums.PostStatus;
 import com.sarkari.post.domain.enums.PostType;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -11,6 +12,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
+
+    interface SitemapPostProjection {
+        String getPostSlug();
+        LocalDateTime getUpdatedAt();
+        String getImageUrls();
+    }
 
     Optional<Post> findByPostId(String postId);
 
@@ -31,6 +38,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findByPostSlugIgnoreCaseAndPostStatus(String postSlug, PostStatus postStatus);
 
     List<Post> findByImageUrlsContaining(String imageToken);
+
+    @Query("select p.postSlug as postSlug, p.updatedAt as updatedAt, p.imageUrls as imageUrls from Post p where p.postStatus = :postStatus order by p.updatedAt desc")
+    List<SitemapPostProjection> findSitemapPostsByStatus(PostStatus postStatus);
 
     @Query("select p.imageUrls from Post p where p.imageUrls is not null and p.imageUrls <> ''")
     List<String> findAllImageUrlsValues();

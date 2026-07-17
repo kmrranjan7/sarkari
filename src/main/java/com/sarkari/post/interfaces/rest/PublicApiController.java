@@ -82,7 +82,5 @@ public class PublicApiController {
                 .data(payload)
                 .build());
     }
-    
-
 
 }

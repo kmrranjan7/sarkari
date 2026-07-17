@@ -14,7 +14,7 @@ public class CacheConfig {
 
     @Bean
     public CacheManager cacheManager() {
-        CaffeineCacheManager cacheManager = new CaffeineCacheManager("postByPostId", "postPages", "publicJobsPages");
+        CaffeineCacheManager cacheManager = new CaffeineCacheManager("postByPostId", "postPages", "publicJobsPages", "publicSitemapUrls");
         cacheManager.setCaffeine(Caffeine.newBuilder()
                 .initialCapacity(100)
                 .maximumSize(2000)

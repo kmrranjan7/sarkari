@@ -36,7 +36,7 @@ public class PostServiceImpl implements PostService {
     private final PostImageCleanupService postImageCleanupService;
 
     @Override
-    @CacheEvict(value = {"postByPostId", "postPages", "publicJobsPages"}, allEntries = true)
+    @CacheEvict(value = {"postByPostId", "postPages", "publicJobsPages", "publicSitemapUrls"}, allEntries = true)
     public PostResponse create(CreatePostRequest request) {
         validateDateRange(request.getStartDate() == null ? null : request.getStartDate().atStartOfDay(),
                 request.getEndDate() == null ? null : request.getEndDate().atStartOfDay());
@@ -103,7 +103,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    @CacheEvict(value = {"postByPostId", "postPages", "publicJobsPages"}, allEntries = true)
+    @CacheEvict(value = {"postByPostId", "postPages", "publicJobsPages", "publicSitemapUrls"}, allEntries = true)
     public PostResponse update(String postId, UpdatePostRequest request) {
         Post existing = repository.findByPostId(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found for id: " + postId));
@@ -130,7 +130,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    @CacheEvict(value = {"postByPostId", "postPages", "publicJobsPages"}, allEntries = true)
+    @CacheEvict(value = {"postByPostId", "postPages", "publicJobsPages", "publicSitemapUrls"}, allEntries = true)
     public void delete(String postId) {
         Post existing = repository.findByPostId(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found for id: " + postId));
