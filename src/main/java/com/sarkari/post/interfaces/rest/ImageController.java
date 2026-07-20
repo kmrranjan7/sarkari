@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/v1/images")
 @RequiredArgsConstructor
+@Slf4j
 @Tag(name = "Images", description = "Manage uploaded images")
 public class ImageController {
 
@@ -36,6 +38,7 @@ public class ImageController {
                         @RequestParam(defaultValue = "20") @Parameter(description = "Page size (1-20)") int size,
                         @RequestParam(defaultValue = "all") @Parameter(description = "Filter mode: all, matched, unmatched") String mode
         ) {
+                log.info("List images request received page={} size={} mode={}", page, size, mode);
                 PagedResponse<String> images = postImageCleanupService.listUploadedImagesPaged(page, size, mode);
                 return ResponseEntity.ok(ApiResponse.<PagedResponse<String>>builder()
                 .success(true)
@@ -51,6 +54,7 @@ public class ImageController {
             @Parameter(description = "Image file name like 1783799722544-f4612dba-0791-497a-977e-602ee377eb35.png")
             String imageName
     ) {
+        log.info("Delete image request received imageName={}", imageName);
         postImageCleanupService.deleteUploadedImage(imageName);
         return ResponseEntity.ok(ApiResponse.<Void>builder()
                 .success(true)
@@ -64,6 +68,7 @@ public class ImageController {
     public ResponseEntity<ApiResponse<ImageUploadResponse>> uploadImage(
             @RequestParam("file") @Parameter(description = "Image file") MultipartFile file
     ) {
+        log.info("Upload image request received originalFilename={} size={}", file.getOriginalFilename(), file.getSize());
         ImageUploadResponse uploaded = postImageCleanupService.uploadImage(file);
         return ResponseEntity.ok(ApiResponse.<ImageUploadResponse>builder()
                 .success(true)

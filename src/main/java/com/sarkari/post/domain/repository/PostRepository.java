@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
 
@@ -35,6 +36,26 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     Page<Post> findByPostTypeAndPostStatus(PostType postType, PostStatus postStatus, Pageable pageable);
 
+        @Query("""
+            select p from Post p
+            where p.postType = :postType
+              and p.postStatus = :postStatus
+              and (
+                lower(p.postTitle) like lower(concat('%', :search, '%'))
+             or lower(p.department) like lower(concat('%', :search, '%'))
+             or lower(p.organization) like lower(concat('%', :search, '%'))
+                         or lower(p.qualification) like lower(concat('%', :search, '%'))
+                         or lower(p.stateName) like lower(concat('%', :search, '%'))
+                         or str(p.vacancies) like concat('%', :search, '%')
+              )
+            """)
+        Page<Post> findByPostTypeAndPostStatusAndSearch(
+            @Param("postType") PostType postType,
+            @Param("postStatus") PostStatus postStatus,
+            @Param("search") String search,
+            Pageable pageable
+        );
+
     List<Post> findByPostSlugIgnoreCaseAndPostStatus(String postSlug, PostStatus postStatus);
 
     List<Post> findByImageUrlsContaining(String imageToken);
@@ -45,7 +66,23 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("select p.imageUrls from Post p where p.imageUrls is not null and p.imageUrls <> ''")
     List<String> findAllImageUrlsValues();
 
-    Page<Post> findByPostTitleContainingIgnoreCaseOrDepartmentContainingIgnoreCaseOrOrganizationContainingIgnoreCase(
+        @Query("""
+            select p from Post p
+            where (
+                lower(p.postTitle) like lower(concat('%', :search, '%'))
+             or lower(p.department) like lower(concat('%', :search, '%'))
+             or lower(p.organization) like lower(concat('%', :search, '%'))
+             or lower(p.qualification) like lower(concat('%', :search, '%'))
+             or lower(p.stateName) like lower(concat('%', :search, '%'))
+             or str(p.vacancies) like concat('%', :search, '%')
+            )
+            """)
+        Page<Post> findBySearchEverywhere(
+            @Param("search") String search,
+            Pageable pageable
+        );
+
+        Page<Post> findByPostTitleContainingIgnoreCaseOrDepartmentContainingIgnoreCaseOrOrganizationContainingIgnoreCase(
             String title,
             String department,
             String organization,

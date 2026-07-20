@@ -1,5 +1,6 @@
 package com.sarkari.post.application.service.impl;
 
+import com.sarkari.common.cache.CacheVersionTracker;
 import com.sarkari.common.exception.BusinessException;
 import com.sarkari.common.exception.ResourceNotFoundException;
 import com.sarkari.post.application.dto.request.CreatePostRequest;
@@ -12,6 +13,7 @@ import com.sarkari.post.domain.entity.Post;
 import com.sarkari.post.domain.enums.PostType;
 import com.sarkari.post.domain.repository.PostRepository;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import lombok.RequiredArgsConstructor;
@@ -31,9 +33,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class PostServiceImpl implements PostService {
 
+    private static final String POST_NOT_FOUND_PREFIX = "Post not found for id: ";
+
     private final PostRepository repository;
     private final PostMapper mapper;
     private final PostImageCleanupService postImageCleanupService;
+    private final CacheVersionTracker cacheVersionTracker;
 
     @Override
     @CacheEvict(value = {"postByPostId", "postPages", "publicJobsPages", "publicSitemapUrls"}, allEntries = true)
@@ -57,6 +62,7 @@ public class PostServiceImpl implements PostService {
         }
 
         Post saved = repository.save(mapper.toEntity(request, postId));
+        cacheVersionTracker.bump("post:create:" + saved.getPostId());
         log.info("Created post postId={} type={} status={}", saved.getPostId(), saved.getPostType(), saved.getPostStatus());
         return mapper.toResponse(saved);
     }
@@ -66,7 +72,7 @@ public class PostServiceImpl implements PostService {
     @Cacheable(value = "postByPostId", key = "#postId")
     public PostResponse getByPostId(String postId) {
         Post post = repository.findByPostId(postId)
-                .orElseThrow(() -> new ResourceNotFoundException("Post not found for id: " + postId));
+                .orElseThrow(() -> new ResourceNotFoundException(POST_NOT_FOUND_PREFIX + postId));
         return mapper.toResponse(post);
     }
 
@@ -82,8 +88,7 @@ public class PostServiceImpl implements PostService {
             postPage = repository.findByPostType(PostType.fromValue(postType), pageable);
         } else if (search != null && !search.isBlank()) {
             String q = search.trim();
-            postPage = repository.findByPostTitleContainingIgnoreCaseOrDepartmentContainingIgnoreCaseOrOrganizationContainingIgnoreCase(
-                    q, q, q, pageable);
+            postPage = repository.findBySearchEverywhere(q, pageable);
         } else {
             postPage = repository.findAll(pageable);
         }
@@ -106,7 +111,7 @@ public class PostServiceImpl implements PostService {
     @CacheEvict(value = {"postByPostId", "postPages", "publicJobsPages", "publicSitemapUrls"}, allEntries = true)
     public PostResponse update(String postId, UpdatePostRequest request) {
         Post existing = repository.findByPostId(postId)
-                .orElseThrow(() -> new ResourceNotFoundException("Post not found for id: " + postId));
+                .orElseThrow(() -> new ResourceNotFoundException(POST_NOT_FOUND_PREFIX + postId));
 
         validateDateRange(request.getStartDate() == null ? null : request.getStartDate().atStartOfDay(),
                 request.getEndDate() == null ? null : request.getEndDate().atStartOfDay());
@@ -125,6 +130,7 @@ public class PostServiceImpl implements PostService {
 
         mapper.updateEntity(existing, request);
         Post saved = repository.save(existing);
+        cacheVersionTracker.bump("post:update:" + saved.getPostId());
         log.info("Updated post postId={} type={} status={}", saved.getPostId(), saved.getPostType(), saved.getPostStatus());
         return mapper.toResponse(saved);
     }
@@ -133,15 +139,16 @@ public class PostServiceImpl implements PostService {
     @CacheEvict(value = {"postByPostId", "postPages", "publicJobsPages", "publicSitemapUrls"}, allEntries = true)
     public void delete(String postId) {
         Post existing = repository.findByPostId(postId)
-                .orElseThrow(() -> new ResourceNotFoundException("Post not found for id: " + postId));
+                .orElseThrow(() -> new ResourceNotFoundException(POST_NOT_FOUND_PREFIX + postId));
 
         postImageCleanupService.deleteImagesFromContentHtml(existing.getContentHtml());
         repository.delete(existing);
+        cacheVersionTracker.bump("post:delete:" + postId);
         log.info("Deleted post postId={}", postId);
     }
 
     private String buildPostId() {
-        int year = LocalDateTime.now().getYear();
+        int year = LocalDateTime.now(ZoneOffset.UTC).getYear();
         int suffix = ThreadLocalRandom.current().nextInt(10000, 100000);
         return "POST-" + year + "-" + suffix;
     }

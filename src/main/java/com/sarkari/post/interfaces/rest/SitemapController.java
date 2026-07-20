@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RestController
 @RequestMapping("/api/site")
 @RequiredArgsConstructor
+@Slf4j
 @Tag(name = "Sitemap", description = "Sitemap APIs")
 public class SitemapController {
 
@@ -33,12 +35,14 @@ public class SitemapController {
     @GetMapping(value = "/post-sitemap.xml", produces = MediaType.APPLICATION_XML_VALUE)
     @Operation(summary = "Primary post sitemap", description = "Fetch first post sitemap file with up to 1000 URLs")
     public ResponseEntity<String> getPrimaryPostSitemap() {
+        log.info("Primary post sitemap request received");
         return buildPostSitemapByPage(1);
     }
 
     @GetMapping(value = "/post-sitemap{suffix:\\d+}.xml", produces = MediaType.APPLICATION_XML_VALUE)
     @Operation(summary = "Chunked post sitemap", description = "Fetch chunked post sitemap files where each file contains up to 1000 URLs")
     public ResponseEntity<String> getPostSitemapBySuffix(@PathVariable("suffix") int suffix) {
+        log.info("Chunked post sitemap request received suffix={}", suffix);
         if (suffix < 1) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
@@ -51,10 +55,12 @@ public class SitemapController {
     @GetMapping(value = "/post-sitemap-page{page:\\d+}.xml", produces = MediaType.APPLICATION_XML_VALUE)
     @Operation(summary = "Legacy chunked post sitemap", description = "Backward-compatible alias where page number directly maps to chunk number")
     public ResponseEntity<String> getPostSitemapLegacy(@PathVariable("page") int page) {
+        log.info("Legacy post sitemap request received page={}", page);
         return buildPostSitemapByPage(page);
     }
 
     private ResponseEntity<String> buildPostSitemapByPage(int page) {
+        log.info("Build post sitemap page request page={}", page);
         if (page < 1) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
@@ -63,11 +69,14 @@ public class SitemapController {
         int fromIndex = (page - 1) * SITEMAP_CHUNK_SIZE;
 
         if (fromIndex >= allUrls.size()) {
+            log.info("Post sitemap page out of bounds page={} totalUrls={}", page, allUrls.size());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
         int toIndex = Math.min(fromIndex + SITEMAP_CHUNK_SIZE, allUrls.size());
         List<SitemapUrlResponse> chunk = allUrls.subList(fromIndex, toIndex);
+        log.info("Post sitemap page prepared page={} fromIndex={} toIndexExclusive={} chunkSize={}",
+            page, fromIndex, toIndex, chunk.size());
 
         String xml = buildUrlSetXml(chunk);
         return ResponseEntity.ok()
@@ -78,11 +87,12 @@ public class SitemapController {
     @GetMapping(value = "/sitemap-index.xml", produces = MediaType.APPLICATION_XML_VALUE)
     @Operation(summary = "Sitemap index", description = "Fetch sitemap index linking all post sitemap chunk files")
     public ResponseEntity<String> getSitemapIndex() {
+        log.info("Sitemap index request received");
         List<SitemapUrlResponse> allUrls = publicPostService.getSitemapUrls();
         int totalPages = Math.max(1, (int) Math.ceil((double) allUrls.size() / SITEMAP_CHUNK_SIZE));
         List<SitemapEntry> sitemapUrls = new ArrayList<>(totalPages + 2);
         String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
-        String lastModified = LocalDateTime.now().atOffset(ZoneOffset.UTC).format(ISO_OFFSET_FORMATTER);
+        String lastModified = LocalDateTime.now(ZoneOffset.UTC).atOffset(ZoneOffset.UTC).format(ISO_OFFSET_FORMATTER);
 
         for (int i = 1; i <= totalPages; i++) {
             if (i == 1) {
@@ -94,6 +104,8 @@ public class SitemapController {
 
         sitemapUrls.add(new SitemapEntry(baseUrl + "/page-sitemap.xml", lastModified));
         sitemapUrls.add(new SitemapEntry(baseUrl + "/category-sitemap.xml", lastModified));
+        log.info("Sitemap index prepared totalUrls={} totalPages={} totalEntries={}",
+            allUrls.size(), totalPages, sitemapUrls.size());
 
         String xml = buildSitemapIndexXml(sitemapUrls);
         return ResponseEntity.ok()
