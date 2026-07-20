@@ -33,6 +33,8 @@ public class PostResponse {
     private PostStatus postStatus;
     private LocalDateTime scheduledAt;
     private PostType postType;
+    private Boolean isFeatured;
+    private Integer priorityScore;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

@@ -103,6 +103,12 @@ public class Post {
     @Column(name = "post_type", nullable = false, length = 40)
     private PostType postType;
 
+    @Column(name = "is_featured", nullable = false)
+    private Boolean isFeatured;
+
+    @Column(name = "priority_score", nullable = false)
+    private Integer priorityScore;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -112,6 +118,12 @@ public class Post {
     @PrePersist
     void onCreate() {
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
+        if (this.isFeatured == null) {
+            this.isFeatured = Boolean.FALSE;
+        }
+        if (this.priorityScore == null) {
+            this.priorityScore = 0;
+        }
         this.createdAt = now;
         this.updatedAt = now;
     }

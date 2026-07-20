@@ -32,6 +32,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class PublicPostServiceImpl implements PublicPostService {
 
         private static final DateTimeFormatter ISO_OFFSET_FORMATTER = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+        private static final Sort TOP_JOBS_SORT = Sort.by(
+                Sort.Order.desc("isFeatured"),
+                Sort.Order.desc("priorityScore"),
+                Sort.Order.desc("createdAt")
+        );
 
     private final PostRepository postRepository;
     private final PostMapper postMapper;
@@ -45,7 +50,7 @@ public class PublicPostServiceImpl implements PublicPostService {
     public PagedResponse<Map<String, Object>> getPublicJobs(String search, String postType, String postStatus, int page, int size, String sortBy, String sortDir) {
         log.info("Fetch public jobs search={} postType={} postStatus={} page={} size={} sortBy={} sortDir={}",
                 search, postType, postStatus, page, size, sortBy, sortDir);
-        Sort sort = Sort.by("desc".equalsIgnoreCase(sortDir) ? Sort.Order.desc(sortBy) : Sort.Order.asc(sortBy));
+        Sort sort = TOP_JOBS_SORT;
         Pageable pageable = PageRequest.of(page, size, sort);
         Page<PostResponse> postPage;
         if (search != null && !search.isBlank()) {
@@ -69,7 +74,7 @@ public class PublicPostServiceImpl implements PublicPostService {
                 .size(postPage.getSize())
                 .totalElements(postPage.getTotalElements())
                 .totalPages(postPage.getTotalPages())
-                .sort(sortBy + "," + sortDir)
+                .sort("isFeatured,desc|priorityScore,desc|createdAt,desc")
                 .first(postPage.isFirst())
                 .last(postPage.isLast())
                 .build();

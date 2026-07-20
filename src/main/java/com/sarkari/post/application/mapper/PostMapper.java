@@ -16,7 +16,7 @@ public class PostMapper {
 
     private static final Pattern IMG_SRC_PATTERN = Pattern.compile("(?i)<img[^>]*\\bsrc\\s*=\\s*['\"]([^'\"]+)['\"]");
     private static final Pattern UPLOAD_FILE_NAME_PATTERN = Pattern.compile(
-            "^[0-9]{10,}-[a-f0-9-]{36}(?:\\.[A-Za-z0-9]+)?$",
+            "^\\d{10,}-[A-Fa-f\\d-]{36}(?:\\.[A-Za-z\\d]+)?$",
             Pattern.CASE_INSENSITIVE
     );
 
@@ -43,6 +43,8 @@ public class PostMapper {
                 .postStatus(req.getPostStatus())
                 .scheduledAt(req.getScheduledAt())
                 .postType(req.getPostType())
+                .isFeatured(Boolean.TRUE.equals(req.getIsFeatured()))
+                .priorityScore(req.getPriorityScore() == null ? 0 : req.getPriorityScore())
                 .build();
     }
 
@@ -67,6 +69,8 @@ public class PostMapper {
         post.setPostStatus(req.getPostStatus());
         post.setScheduledAt(req.getScheduledAt());
         post.setPostType(req.getPostType());
+        post.setIsFeatured(Boolean.TRUE.equals(req.getIsFeatured()));
+        post.setPriorityScore(req.getPriorityScore() == null ? 0 : req.getPriorityScore());
     }
 
     public PostResponse toResponse(Post post) {
@@ -91,6 +95,8 @@ public class PostMapper {
                 .postStatus(post.getPostStatus())
                 .scheduledAt(post.getScheduledAt())
                 .postType(post.getPostType())
+                .isFeatured(post.getIsFeatured())
+                .priorityScore(post.getPriorityScore())
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
                 .build();

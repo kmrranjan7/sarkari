@@ -33,15 +33,17 @@ public class PublicPostMapper {
         item.put("createdAt", post.getCreatedAt());
         item.put("department", post.getDepartment());
         item.put("organization", post.getOrganization());
-        item.put("qualification", post.getQualification());
+        item.put("qualification", post.getQualification() == null || post.getQualification().isBlank() ? "N/A" : post.getQualification());
         item.put("postSlug", post.getPostSlug());
         item.put("postStatus", post.getPostStatus());
         item.put("postTitle", post.getPostTitle());
         item.put("postType", post.getPostType());
+        item.put("isFeatured", post.getIsFeatured());
+        item.put("priorityScore", post.getPriorityScore());
         item.put("startDate", post.getStartDate());
         item.put("endDate", post.getEndDate());
         item.put("stateName", post.getStateName());
-        item.put("vacancies", post.getVacancies());
+        item.put("vacancies", post.getVacancies() == null ? 0 : post.getVacancies());
         item.put("updatedAt", post.getUpdatedAt());
         return item;
     }

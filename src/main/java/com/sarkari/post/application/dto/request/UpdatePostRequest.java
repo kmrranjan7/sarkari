@@ -3,6 +3,8 @@ package com.sarkari.post.application.dto.request;
 import com.sarkari.post.domain.enums.PostStatus;
 import com.sarkari.post.domain.enums.PostType;
 import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -70,4 +72,10 @@ public class UpdatePostRequest {
 
     @NotNull
     private PostType postType;
+
+    private Boolean isFeatured;
+
+    @Min(value = 0, message = "priorityScore must be between 0 and 100")
+    @Max(value = 100, message = "priorityScore must be between 0 and 100")
+    private Integer priorityScore;
 }
