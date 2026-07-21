@@ -39,6 +39,7 @@ public class PublicPostMapper {
         item.put("postTitle", post.getPostTitle());
         item.put("postType", post.getPostType());
         item.put("isFeatured", post.getIsFeatured());
+        item.put("imageUrls", firstImageUrl(post.getImageUrls()));
         item.put("priorityScore", post.getPriorityScore());
         item.put("startDate", post.getStartDate());
         item.put("endDate", post.getEndDate());
@@ -46,5 +47,21 @@ public class PublicPostMapper {
         item.put("vacancies", post.getVacancies() == null ? 0 : post.getVacancies());
         item.put("updatedAt", post.getUpdatedAt());
         return item;
+    }
+
+    private String firstImageUrl(String imageUrlsCsv) {
+        if (imageUrlsCsv == null || imageUrlsCsv.isBlank()) {
+            return "";
+        }
+
+        String[] parts = imageUrlsCsv.split(",");
+        for (String part : parts) {
+            String value = part.trim();
+            if (!value.isEmpty()) {
+                return value;
+            }
+        }
+
+        return "";
     }
 }
