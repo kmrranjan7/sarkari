@@ -1,6 +1,7 @@
 package com.sarkari.post.application.service.impl;
 
 import com.sarkari.common.exception.BusinessException;
+import com.sarkari.post.application.prompt.OpenAIPrompts;
 import com.sarkari.post.application.dto.response.OpenAIResponse;
 import com.sarkari.post.application.service.OpenAIService;
 import java.time.Clock;
@@ -41,11 +42,22 @@ public class OpenAIServiceImpl implements OpenAIService {
     @Value("${app.openai.model:gpt-4o-mini}")
     private String openAiModel;
 
+    @Value("${app.openai.mock-enabled:false}")
+    private boolean mockEnabled;
+
     @Override
     public OpenAIResponse send(String message) {
         String sanitizedMessage = message == null ? "" : message.trim();
         if (sanitizedMessage.isBlank()) {
             throw new BusinessException("message is required");
+        }
+
+        if (mockEnabled) {
+            return OpenAIResponse.builder()
+                    .requestMessage(sanitizedMessage)
+                    .responseMessage(buildMockJsonResponse(sanitizedMessage))
+                    .respondedAt(LocalDateTime.now(clock))
+                    .build();
         }
 
         if (openAiApiKey == null || openAiApiKey.isBlank()) {
@@ -61,8 +73,8 @@ public class OpenAIServiceImpl implements OpenAIService {
         Map<String, Object> requestBody = Map.of(
             KEY_MODEL, openAiModel,
             KEY_MESSAGES, List.of(
-                Map.of(KEY_ROLE, "system", KEY_CONTENT, "You are a concise assistant."),
-                Map.of(KEY_ROLE, "user", KEY_CONTENT, sanitizedMessage)
+                Map.of(KEY_ROLE, "system", KEY_CONTENT, OpenAIPrompts.SYSTEM_POST_DRAFT_PROMPT),
+                Map.of(KEY_ROLE, "user", KEY_CONTENT, OpenAIPrompts.userPostDraftPrompt(sanitizedMessage))
                 )
         );
 
@@ -127,5 +139,50 @@ public class OpenAIServiceImpl implements OpenAIService {
         }
 
         return content.trim();
+    }
+
+    private String buildMockJsonResponse(String title) {
+        String slug = toSlug(title);
+        String escapedTitle = jsonEscape(title);
+        String escapedSlug = jsonEscape(slug);
+
+        return "{" +
+                "\"postTitle\":\"" + escapedTitle + "\"," +
+                "\"postSlug\":\"" + escapedSlug + "\"," +
+                "\"contentHtml\":\"<section class=\\\"sarkari-template-block\\\"><h2>" + escapedTitle + "</h2><p>This is a mock AI generated draft for testing UI autofill.</p><h3>Important Dates</h3><ul><li>Start Date: 2026-08-01</li><li>End Date: 2026-08-31</li></ul><h3>Eligibility</h3><p>Graduate candidates can apply.</p></section>\"," +
+                "\"applicationId\":\"APP-MOCK-2026\"," +
+                "\"department\":\"Recruitment Cell\"," +
+                "\"organization\":\"UPSC\"," +
+                "\"qualification\":\"Graduate\"," +
+                "\"vacancies\":120," +
+                "\"startDate\":\"2026-08-01\"," +
+                "\"endDate\":\"2026-08-31\"," +
+                "\"stateName\":\"All India\"," +
+                "\"faqSchemaJson\":\"{\\\"@context\\\":\\\"https://schema.org\\\",\\\"@type\\\":\\\"FAQPage\\\",\\\"mainEntity\\\":[]}\"," +
+                "\"seoTitle\":\"" + jsonEscape(title + " 2026 Apply Online") + "\"," +
+                "\"seoDescription\":\"" + jsonEscape("Mock SEO description for " + title + " with eligibility, dates and apply links.") + "\"," +
+                "\"seoFocusKeyword\":\"" + escapedTitle + "\"," +
+                "\"postStatus\":\"Draft\"," +
+                "\"scheduledAt\":\"\"," +
+                "\"postType\":\"Job\"," +
+                "\"isFeatured\":false," +
+                "\"priorityScore\":70" +
+                "}";
+    }
+
+    private String toSlug(String value) {
+        return value.toLowerCase()
+                .trim()
+                .replaceAll("[^a-z0-9\\s-]", "")
+                .replaceAll("\\s+", "-")
+                .replaceAll("-+", "-");
+    }
+
+    private String jsonEscape(String value) {
+        return value
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r");
     }
 }
