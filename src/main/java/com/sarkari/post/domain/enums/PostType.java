@@ -7,7 +7,10 @@ public enum PostType {
     JOB("Job"),
     ADMIT("Admit"),
     EXAM("Exam"),
-    RESULT("Result");
+    RESULT("Result"),
+    ADMISSION("Admission"),
+    SYLLABUS("Syllabus"),
+    ANSWER_KEY("Answer_Key");
 
     private final String value;
 

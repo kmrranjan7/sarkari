@@ -72,7 +72,7 @@ public class PostController {
             @RequestParam(defaultValue = "desc") String sortDir
     ) {
             log.info("List posts request received search={} postType={} page={} size={} sortBy={} sortDir={}",
-                search, postType, page, size, sortBy, sortDir);
+            search, postType, page, size, sortBy, sortDir);
         PagedResponse<PostResponse> result = service.getAll(search, postType, page, size, sortBy, sortDir);
         return ResponseEntity.ok(ApiResponse.<PagedResponse<PostResponse>>builder()
                 .success(true)

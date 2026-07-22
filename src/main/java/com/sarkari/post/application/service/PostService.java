@@ -11,7 +11,7 @@ public interface PostService {
 
     PostResponse getByPostId(String postId);
 
-    PagedResponse<PostResponse> getAll(String search, String postType, int page, int size, String sortBy, String sortDir);
+            PagedResponse<PostResponse> getAll(String search, String postType, int page, int size, String sortBy, String sortDir);
 
     PostResponse update(String postId, UpdatePostRequest request);
 
