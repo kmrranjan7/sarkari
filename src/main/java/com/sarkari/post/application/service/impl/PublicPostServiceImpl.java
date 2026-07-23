@@ -42,7 +42,7 @@ public class PublicPostServiceImpl implements PublicPostService {
     private final PostMapper postMapper;
     private final PublicPostMapper publicPostMapper;
 
-        @Value("${app.frontend.base-url:http://localhost:3000}")
+        @Value("${app.frontend.base-url}")
         private String frontendBaseUrl;
 
     @Override
